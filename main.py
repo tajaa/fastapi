@@ -1,7 +1,7 @@
 from typing import List, Optional
 from uuid import UUID, uuid4
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -27,8 +27,39 @@ def create_task(task: Task):
 
 @app.get("/tasks/", response_model=List[Task])
 def read_tasks():
-    """read tasks"""
+    """read multiple tasks"""
     return tasks
+
+
+# path parameters
+@app.get("/tasks/{task_id}", response_model=Task)
+def read_one_task(task_id: UUID):
+    """one task"""
+    for task in tasks:
+        if task.id == task_id:
+            return task
+    return HTTPException(status_code=404, detail="task not found")
+
+
+@app.put("/tasks/{task_id}", response_model=Task)
+def update_task(task_id: UUID, task_update: Task):
+    """we want index as well as the task"""
+    for idx, task in enumerate(tasks):
+        if task.id == task_id:
+            updated_task = task.copy(update=task_update.dict(exclude_unset=True))
+            tasks[idx] = updated_task
+            return updated_task
+    raise HTTPException(status_code=404, detail="task not found")
+
+
+# delete method
+@app.delete("/tasks/{task_id}", response_model=Task)
+def delete_task(task_id):
+    """delete the task"""
+    for idx, task in enumerate(tasks):
+        if task.id == task_id:
+            return task.pop(idx)
+    raise HTTPException(status_code=404, detail="task not found")
 
 
 if __name__ == "__main__":
