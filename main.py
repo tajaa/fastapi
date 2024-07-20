@@ -54,11 +54,11 @@ def update_task(task_id: UUID, task_update: Task):
 
 # delete method
 @app.delete("/tasks/{task_id}", response_model=Task)
-def delete_task(task_id):
+def delete_task(task_id: UUID):
     """delete the task"""
     for idx, task in enumerate(tasks):
         if task.id == task_id:
-            return task.pop(idx)
+            return tasks.pop(idx)
     raise HTTPException(status_code=404, detail="task not found")
 
 
